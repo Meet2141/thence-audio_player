@@ -1,4 +1,6 @@
-import 'package:audio_player/src/audio_player/audio_player_screen.dart';
+import 'package:audio_player/src/constants/color_constants.dart';
+import 'package:audio_player/src/constants/string_constants.dart';
+import 'package:audio_player/src/views/audio_player/audio_player_screen.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -11,9 +13,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Audio Player',
+      title: StringConstants.appName,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: ColorConstants.primary),
         useMaterial3: true,
       ),
       home: const AudioPlayerScreen(),
