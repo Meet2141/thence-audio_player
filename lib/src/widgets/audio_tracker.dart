@@ -2,11 +2,11 @@ import 'package:audio_player/src/constants/color_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 
-///EqualizerTrackerWidgets - Display Tracker for music based on [audioPlayer]
-class EqualizerTrackerWidgets extends StatelessWidget {
+///AudioTracker - Display Tracker for music based on [audioPlayer]
+class AudioTracker extends StatelessWidget {
   final AudioPlayer audioPlayer;
 
-  const EqualizerTrackerWidgets({super.key, required this.audioPlayer});
+  const AudioTracker({super.key, required this.audioPlayer});
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +18,7 @@ class EqualizerTrackerWidgets extends StatelessWidget {
 
         return CustomPaint(
           size: Size(double.infinity, 100),
-          painter: EqualizerTrackerPainter(
+          painter: AudioTrackerPainter(
             currentPosition: currentPosition,
             duration: duration,
           ),
@@ -28,12 +28,12 @@ class EqualizerTrackerWidgets extends StatelessWidget {
   }
 }
 
-///EqualizerTrackerPainter - Create tracker using [currentPosition] and [duration].
-class EqualizerTrackerPainter extends CustomPainter {
+///AudioTrackerPainter - Create tracker painter using [currentPosition] and [duration].
+class AudioTrackerPainter extends CustomPainter {
   final Duration currentPosition;
   final Duration duration;
 
-  EqualizerTrackerPainter({required this.currentPosition, required this.duration});
+  AudioTrackerPainter({required this.currentPosition, required this.duration});
 
   @override
   void paint(Canvas canvas, Size size) {

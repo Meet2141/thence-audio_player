@@ -2,25 +2,26 @@ import 'package:audio_player/src/constants/color_constants.dart';
 import 'package:audio_player/src/views/audio_player/bloc/audio/audio_bloc.dart';
 import 'package:audio_player/src/views/audio_player/bloc/audio/audio_event.dart';
 import 'package:audio_player/src/views/audio_player/bloc/audio/audio_state.dart';
-import 'package:audio_player/src/widgets/equalizer_tracker_widgets.dart';
+import 'package:audio_player/src/widgets/audio_equalizer.dart';
+import 'package:audio_player/src/widgets/audio_tracker.dart';
 import 'package:audio_player/src/widgets/player_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 ///AudioPlayer - Display Audio Player
 class AudioPlayer extends StatelessWidget {
-  const AudioPlayer({super.key});
+  final AudioBloc audioBloc;
+
+  const AudioPlayer({
+    super.key,
+    required this.audioBloc,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final audioBloc = context.read<AudioBloc>();
-
     return BlocBuilder<AudioBloc, AudioState>(
       bloc: audioBloc,
       builder: (context, state) {
-        if (state is AudioLoading) {
-          const CircularProgressIndicator();
-        }
         return Container(
           alignment: Alignment.center,
           padding: const EdgeInsets.all(16.0),
@@ -41,7 +42,7 @@ class AudioPlayer extends StatelessWidget {
                 children: [
                   Opacity(
                     opacity: 0.3,
-                    child: EqualizerTrackerWidgets(
+                    child: AudioTracker(
                       audioPlayer: audioBloc.audioPlayer,
                     ),
                   ),
@@ -51,9 +52,9 @@ class AudioPlayer extends StatelessWidget {
                       alignment: Alignment.centerLeft,
                       child: Row(
                         children: [
-                         /* if (state is AudioLoading)
-                            CircularProgressIndicator()
-                          else*/ if (state is AudioPaused)
+                          if (state is AudioLoading)
+                            const CircularProgressIndicator()
+                          else if (state is AudioPaused || state is CompletedState)
                             PlayerButton(
                               icon: Icons.play_arrow,
                               onTap: () => audioBloc.add(PlayAudioEvent()),
@@ -66,12 +67,12 @@ class AudioPlayer extends StatelessWidget {
                           Expanded(
                             child: Padding(
                               padding: const EdgeInsets.only(left: 10),
-                              child: Image.asset(
-                                'assets/music.png',
-                                fit: BoxFit.cover,
+                              child: AudioEqualizer(
+                                isPlaying: state is AudioPlaying,
+                                isStopped: state is CompletedState,
                               ),
                             ),
-                          )
+                          ),
                         ],
                       ),
                     ),

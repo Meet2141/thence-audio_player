@@ -7,3 +7,5 @@ class PlayAudioEvent extends AudioEvent {}
 class PauseAudioEvent extends AudioEvent {}
 
 class LoadAudioEvent extends AudioEvent {}
+
+class CompletedAudioEvent extends AudioEvent {}

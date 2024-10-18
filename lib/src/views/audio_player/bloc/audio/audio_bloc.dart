@@ -14,26 +14,29 @@ class AudioBloc extends Bloc<AudioEvent, AudioState> {
   AudioBloc() : super(AudioInitial()) {
     on<LoadAudioEvent>((event, emit) async {
       emit(AudioLoading());
-      final localFilePath = await _getLocalFilePath();
-      if (await File(localFilePath).exists()) {
-        localAudioFilePath = localFilePath;
-        await audioPlayer.setFilePath(localAudioFilePath!);
-        emit(AudioPaused());
-      } else {
-        await _downloadAndSaveAudioFile();
-        await audioPlayer.setFilePath(localAudioFilePath!);
-        emit(AudioPaused());
+      try {
+        final localFilePath = await _getLocalFilePath();
+        if (await File(localFilePath).exists()) {
+          localAudioFilePath = localFilePath;
+          await audioPlayer.setFilePath(localAudioFilePath!);
+          emit(AudioPaused());
+        } else {
+          await _downloadAndSaveAudioFile(); // Handle errors inside this function
+          await audioPlayer.setFilePath(localAudioFilePath!);
+          emit(AudioPaused());
+        }
+
+        // Disable repeat mode if the audio completes
+        audioPlayer.playerStateStream.listen((playerState) {
+          if (playerState.processingState == ProcessingState.completed) {
+            add(CompletedAudioEvent());
+          }
+        });
+      } catch (e) {
+        emit(AudioError(e.toString()));
       }
 
-      // Listen for the completion event
-      audioPlayer.playerStateStream.listen((playerState) {
-        // When audio finishes, reset to paused (i.e., show play button)
-        if (playerState.processingState == ProcessingState.completed) {
-          // Reset playback to the start
-          audioPlayer.seek(Duration.zero);
-          add(PauseAudioEvent());
-        }
-      });
+      audioPlayer.setLoopMode(LoopMode.off);
     });
 
     on<PlayAudioEvent>((event, emit) {
@@ -45,17 +48,35 @@ class AudioBloc extends Bloc<AudioEvent, AudioState> {
       audioPlayer.pause();
       emit(AudioPaused());
     });
+
+    on<CompletedAudioEvent>((event, emit) {
+      audioPlayer.seek(Duration.zero);
+      add(PauseAudioEvent());
+      audioPlayer.stop();
+      emit(CompletedState());
+    });
   }
 
   Future<void> _downloadAndSaveAudioFile() async {
-    final response = await http.get(Uri.parse(StringConstants.audioUrl));
+    try {
+      final response = await http.get(Uri.parse(StringConstants.audioUrl));
 
-    if (response.statusCode == 200) {
-      localAudioFilePath = await _getLocalFilePath();
-      final file = File(localAudioFilePath ?? '');
-      await file.writeAsBytes(response.bodyBytes);
-    } else {
-      throw Exception(StringConstants.failedToDownload);
+      if (response.statusCode == 200) {
+        localAudioFilePath = await _getLocalFilePath();
+        final file = File(localAudioFilePath ?? '');
+        await file.writeAsBytes(response.bodyBytes);
+      } else {
+        throw HttpException('Failed to download audio file. Status code: ${response.statusCode}');
+      }
+    } on SocketException catch (_) {
+      // Handle network issues
+      throw Exception('No Internet connection. Please check your network.');
+    } on HttpException catch (e) {
+      // Handle download-specific issues
+      throw Exception('HTTP Error: ${e.message}');
+    } on Exception catch (e) {
+      // General error
+      throw Exception('Error occurred: ${e.toString()}');
     }
   }
 
