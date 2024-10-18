@@ -1,5 +1,6 @@
 import 'package:path_provider/path_provider.dart';
 
+///AppState - Share data accross the app
 class AppState {
   AppState._internal();
 
