@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:audio_player/src/constants/string_constants.dart';
-import 'package:http/http.dart' as http;
-import 'package:path_provider/path_provider.dart';
+import 'package:audio_player/src/services/api_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'audio_event.dart';
 import 'audio_state.dart';
@@ -15,13 +14,13 @@ class AudioBloc extends Bloc<AudioEvent, AudioState> {
     on<LoadAudioEvent>((event, emit) async {
       emit(AudioLoading());
       try {
-        final localFilePath = await _getLocalFilePath();
+        final localFilePath = await appState.getLocalFilePath(StringConstants.fileName);
         if (await File(localFilePath).exists()) {
           localAudioFilePath = localFilePath;
           await audioPlayer.setFilePath(localAudioFilePath!);
           emit(AudioPaused());
         } else {
-          await _downloadAndSaveAudioFile(); // Handle errors inside this function
+          await getDownloadedAudio();
           await audioPlayer.setFilePath(localAudioFilePath!);
           emit(AudioPaused());
         }
@@ -57,32 +56,15 @@ class AudioBloc extends Bloc<AudioEvent, AudioState> {
     });
   }
 
-  Future<void> _downloadAndSaveAudioFile() async {
-    try {
-      final response = await http.get(Uri.parse(StringConstants.audioUrl));
-
-      if (response.statusCode == 200) {
-        localAudioFilePath = await _getLocalFilePath();
-        final file = File(localAudioFilePath ?? '');
-        await file.writeAsBytes(response.bodyBytes);
-      } else {
-        throw HttpException('Failed to download audio file. Status code: ${response.statusCode}');
-      }
-    } on SocketException catch (_) {
-      // Handle network issues
-      throw Exception('No Internet connection. Please check your network.');
-    } on HttpException catch (e) {
-      // Handle download-specific issues
-      throw Exception('HTTP Error: ${e.message}');
-    } on Exception catch (e) {
-      // General error
-      throw Exception('Error occurred: ${e.toString()}');
+  Future<void> getDownloadedAudio() async {
+    final response = await ApiService().downloadAndSaveAudioFile();
+    if (response.statusCode == 200) {
+      localAudioFilePath = await appState.getLocalFilePath(StringConstants.fileName);
+      final file = File(localAudioFilePath ?? '');
+      await file.writeAsBytes(response.bodyBytes);
+    } else {
+      throw HttpException('Failed to download audio file. Status code: ${response.statusCode}');
     }
-  }
-
-  Future<String> _getLocalFilePath() async {
-    final directory = await getApplicationDocumentsDirectory();
-    return '${directory.path}/background_music.mp3';
   }
 
   @override
