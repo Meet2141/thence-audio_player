@@ -8,4 +8,5 @@ class ColorConstants {
   static Color grey = Colors.grey;
   static Color blue = Colors.blue;
   static Color red = Colors.red;
+  static Color transparent = Colors.transparent;
 }

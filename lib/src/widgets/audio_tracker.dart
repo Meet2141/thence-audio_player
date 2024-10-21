@@ -1,20 +1,21 @@
 import 'package:audio_player/src/constants/color_constants.dart';
+import 'package:audio_waveforms/audio_waveforms.dart';
 import 'package:flutter/material.dart';
-import 'package:just_audio/just_audio.dart';
 
-///AudioTracker - Display Tracker for music based on [audioPlayer]
+///AudioTracker - Display Tracker for music based on [playerController]
 class AudioTracker extends StatelessWidget {
-  final AudioPlayer audioPlayer;
+  final PlayerController playerController;
 
-  const AudioTracker({super.key, required this.audioPlayer});
+  const AudioTracker({super.key, required this.playerController});
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<Duration>(
-      stream: audioPlayer.positionStream,
+    return StreamBuilder<int>(
+      stream: playerController.onCurrentDurationChanged, // Stream that returns int (milliseconds)
       builder: (context, snapshot) {
-        final currentPosition = snapshot.data ?? Duration.zero;
-        final duration = audioPlayer.duration ?? Duration.zero;
+        // Convert int (milliseconds) to Duration
+        final currentPosition = Duration(milliseconds: snapshot.data ?? 0);
+        final duration = Duration(milliseconds: playerController.maxDuration);
 
         return CustomPaint(
           size: Size(double.infinity, 100),

@@ -43,7 +43,7 @@ class AudioPlayer extends StatelessWidget {
                   Opacity(
                     opacity: 0.3,
                     child: AudioTracker(
-                      audioPlayer: audioBloc.audioPlayer,
+                      playerController: audioBloc.playerController,
                     ),
                   ),
                   Padding(
@@ -54,7 +54,7 @@ class AudioPlayer extends StatelessWidget {
                         children: [
                           if (state is AudioLoading)
                             const CircularProgressIndicator()
-                          else if (state is AudioPaused || state is CompletedState)
+                          else if (state is AudioPaused || state is AudioCompleted)
                             PlayerButton(
                               icon: Icons.play_arrow,
                               onTap: () => audioBloc.add(PlayAudioEvent()),
@@ -64,13 +64,10 @@ class AudioPlayer extends StatelessWidget {
                               icon: Icons.pause,
                               onTap: () => audioBloc.add(PauseAudioEvent()),
                             ),
-                          Expanded(
+                          Flexible(
                             child: Padding(
                               padding: const EdgeInsets.only(left: 10),
-                              child: AudioEqualizer(
-                                isPlaying: state is AudioPlaying,
-                                isStopped: state is CompletedState,
-                              ),
+                              child: AudioEqualizer(playerController: audioBloc.playerController),
                             ),
                           ),
                         ],
